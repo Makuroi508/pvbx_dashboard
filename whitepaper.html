@@ -1,0 +1,789 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>PVBX Whitepaper - Player vs Bot</title>
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Cinzel:wght@400;600;700&family=Inter:wght@300;400;600;700&display=swap');
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+            background: linear-gradient(135deg, #1a0f2e 0%, #2d1b4e 50%, #1a0f2e 100%);
+            color: #e0e0e0;
+            line-height: 1.8;
+            padding: 20px;
+        }
+
+        .container {
+            max-width: 900px;
+            margin: 0 auto;
+        }
+
+        /* Header */
+        .header {
+            text-align: center;
+            padding: 40px 20px;
+            background: rgba(0, 0, 0, 0.4);
+            border-radius: 20px;
+            border: 2px solid rgba(212, 175, 55, 0.4);
+            box-shadow: 0 8px 32px rgba(147, 51, 234, 0.3);
+            margin-bottom: 30px;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .header::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: linear-gradient(90deg, 
+                rgba(147, 51, 234, 0.1) 0%, 
+                transparent 50%, 
+                rgba(212, 175, 55, 0.1) 100%);
+            pointer-events: none;
+        }
+
+        .logo-container {
+            width: 100px;
+            height: 100px;
+            border-radius: 50%;
+            background: linear-gradient(135deg, #D4AF37 0%, #9333ea 100%);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            box-shadow: 0 0 30px rgba(212, 175, 55, 0.5);
+            margin: 0 auto 20px;
+            position: relative;
+            z-index: 1;
+        }
+
+        .logo-text {
+            font-size: 3em;
+        }
+
+        .header h1 {
+            font-family: 'Cinzel', serif;
+            font-size: 3em;
+            background: linear-gradient(135deg, #D4AF37 0%, #9333ea 100%);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+            margin-bottom: 10px;
+            position: relative;
+            z-index: 1;
+        }
+
+        .subtitle {
+            font-size: 1.2em;
+            color: #9333ea;
+            font-style: italic;
+            position: relative;
+            z-index: 1;
+        }
+
+        /* Quick Info Box */
+        .quick-info {
+            background: rgba(0, 0, 0, 0.4);
+            border: 1px solid rgba(212, 175, 55, 0.3);
+            border-radius: 15px;
+            padding: 25px;
+            margin-bottom: 30px;
+            box-shadow: 0 4px 16px rgba(147, 51, 234, 0.2);
+        }
+
+        .quick-info h2 {
+            font-family: 'Cinzel', serif;
+            color: #D4AF37;
+            margin-bottom: 20px;
+            font-size: 1.8em;
+        }
+
+        .info-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+            gap: 15px;
+            margin-bottom: 20px;
+        }
+
+        .info-item {
+            background: rgba(147, 51, 234, 0.1);
+            border: 1px solid rgba(147, 51, 234, 0.3);
+            border-radius: 10px;
+            padding: 15px;
+        }
+
+        .info-label {
+            font-size: 0.85em;
+            color: #9333ea;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            font-weight: 600;
+            margin-bottom: 5px;
+        }
+
+        .info-value {
+            color: #D4AF37;
+            font-weight: 600;
+            word-break: break-all;
+        }
+
+        .info-value a {
+            color: #D4AF37;
+            text-decoration: none;
+            transition: all 0.3s;
+        }
+
+        .info-value a:hover {
+            color: #9333ea;
+        }
+
+        /* Section */
+        .section {
+            background: rgba(0, 0, 0, 0.4);
+            border: 1px solid rgba(212, 175, 55, 0.3);
+            border-radius: 15px;
+            padding: 30px;
+            margin-bottom: 25px;
+            box-shadow: 0 4px 16px rgba(147, 51, 234, 0.2);
+        }
+
+        .section h2 {
+            font-family: 'Cinzel', serif;
+            color: #D4AF37;
+            margin-bottom: 20px;
+            font-size: 2em;
+            padding-bottom: 10px;
+            border-bottom: 2px solid rgba(212, 175, 55, 0.3);
+        }
+
+        .section h3 {
+            font-family: 'Cinzel', serif;
+            color: #9333ea;
+            margin-top: 25px;
+            margin-bottom: 15px;
+            font-size: 1.4em;
+        }
+
+        .section p {
+            margin-bottom: 15px;
+            color: #e0e0e0;
+        }
+
+        .section ul, .section ol {
+            margin-left: 25px;
+            margin-bottom: 15px;
+        }
+
+        .section li {
+            margin-bottom: 10px;
+            color: #e0e0e0;
+        }
+
+        /* Highlight Boxes */
+        .highlight-box {
+            background: rgba(147, 51, 234, 0.15);
+            border-left: 4px solid #D4AF37;
+            padding: 20px;
+            margin: 20px 0;
+            border-radius: 8px;
+        }
+
+        .highlight-box.warning {
+            background: rgba(239, 68, 68, 0.15);
+            border-left-color: #ef4444;
+        }
+
+        .highlight-box.success {
+            background: rgba(74, 222, 128, 0.15);
+            border-left-color: #4ade80;
+        }
+
+        /* Stats Display */
+        .stats-display {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 15px;
+            margin: 20px 0;
+        }
+
+        .stat-box {
+            background: rgba(0, 0, 0, 0.3);
+            border: 1px solid rgba(212, 175, 55, 0.2);
+            border-radius: 10px;
+            padding: 20px;
+            text-align: center;
+            transition: all 0.3s;
+        }
+
+        .stat-box:hover {
+            background: rgba(147, 51, 234, 0.1);
+            border-color: rgba(212, 175, 55, 0.4);
+            transform: translateY(-3px);
+            box-shadow: 0 8px 20px rgba(147, 51, 234, 0.3);
+        }
+
+        .stat-label {
+            font-size: 0.85em;
+            color: #9333ea;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            margin-bottom: 10px;
+        }
+
+        .stat-value {
+            font-size: 1.8em;
+            font-weight: 700;
+            color: #D4AF37;
+            font-family: 'Cinzel', serif;
+        }
+
+        /* Flow Diagram */
+        .flow-diagram {
+            background: rgba(0, 0, 0, 0.3);
+            border: 1px solid rgba(147, 51, 234, 0.3);
+            border-radius: 10px;
+            padding: 25px;
+            margin: 20px 0;
+            font-family: 'Courier New', monospace;
+            color: #D4AF37;
+            overflow-x: auto;
+        }
+
+        .flow-step {
+            margin: 10px 0;
+            padding-left: 20px;
+            border-left: 3px solid #9333ea;
+        }
+
+        /* Social Links */
+        .social-links {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 15px;
+            margin-top: 20px;
+        }
+
+        .social-link {
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+            padding: 12px 20px;
+            background: rgba(147, 51, 234, 0.2);
+            border: 1px solid #9333ea;
+            border-radius: 10px;
+            color: #D4AF37;
+            text-decoration: none;
+            transition: all 0.3s;
+            font-weight: 600;
+        }
+
+        .social-link:hover {
+            background: rgba(212, 175, 55, 0.2);
+            border-color: #D4AF37;
+            transform: translateY(-2px);
+            box-shadow: 0 4px 12px rgba(147, 51, 234, 0.4);
+        }
+
+        /* Code/Address Block */
+        .code-block {
+            background: rgba(0, 0, 0, 0.5);
+            border: 1px solid rgba(147, 51, 234, 0.3);
+            border-radius: 8px;
+            padding: 15px;
+            font-family: 'Courier New', monospace;
+            font-size: 0.9em;
+            color: #4ade80;
+            overflow-x: auto;
+            margin: 10px 0;
+        }
+
+        /* Roadmap Timeline */
+        .roadmap-item {
+            position: relative;
+            padding-left: 40px;
+            margin-bottom: 30px;
+            border-left: 3px solid #9333ea;
+        }
+
+        .roadmap-item::before {
+            content: '';
+            position: absolute;
+            left: -8px;
+            top: 0;
+            width: 14px;
+            height: 14px;
+            border-radius: 50%;
+            background: #D4AF37;
+            border: 3px solid #1a0f2e;
+        }
+
+        .roadmap-title {
+            font-family: 'Cinzel', serif;
+            color: #D4AF37;
+            font-size: 1.3em;
+            margin-bottom: 10px;
+        }
+
+        /* Table */
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            margin: 20px 0;
+        }
+
+        th {
+            background: rgba(147, 51, 234, 0.2);
+            color: #D4AF37;
+            padding: 12px;
+            text-align: left;
+            border-bottom: 2px solid rgba(212, 175, 55, 0.3);
+            font-weight: 600;
+        }
+
+        td {
+            padding: 12px;
+            border-bottom: 1px solid rgba(212, 175, 55, 0.1);
+        }
+
+        tr:hover {
+            background: rgba(147, 51, 234, 0.05);
+        }
+
+        /* Responsive */
+        @media (max-width: 768px) {
+            .header h1 {
+                font-size: 2em;
+            }
+
+            .section h2 {
+                font-size: 1.5em;
+            }
+
+            .info-grid {
+                grid-template-columns: 1fr;
+            }
+
+            .stats-display {
+                grid-template-columns: 1fr;
+            }
+        }
+
+        /* Back to Top Button */
+        .back-to-top {
+            position: fixed;
+            bottom: 30px;
+            right: 30px;
+            width: 50px;
+            height: 50px;
+            background: linear-gradient(135deg, #D4AF37 0%, #9333ea 100%);
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: white;
+            font-size: 1.5em;
+            cursor: pointer;
+            box-shadow: 0 4px 16px rgba(147, 51, 234, 0.4);
+            transition: all 0.3s;
+            opacity: 0;
+            pointer-events: none;
+        }
+
+        .back-to-top.visible {
+            opacity: 1;
+            pointer-events: all;
+        }
+
+        .back-to-top:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 8px 24px rgba(147, 51, 234, 0.6);
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <!-- Header -->
+        <div class="header">
+            <div class="logo-container">
+                <div class="logo-text">⚔️</div>
+            </div>
+            <h1>PLAYER vs BOT</h1>
+            <div class="subtitle">Pick a side. Stake your pride.</div>
+        </div>
+
+        <!-- Quick Info -->
+        <div class="quick-info">
+            <h2>Token Information</h2>
+            <div class="info-grid">
+                <div class="info-item">
+                    <div class="info-label">Ticker</div>
+                    <div class="info-value">$PVBX</div>
+                </div>
+                <div class="info-item">
+                    <div class="info-label">Chain</div>
+                    <div class="info-value">Solana (SPL / Token-2022)</div>
+                </div>
+                <div class="info-item">
+                    <div class="info-label">Supply</div>
+                    <div class="info-value">1,000,000,000 (fixed)</div>
+                </div>
+                <div class="info-item">
+                    <div class="info-label">Website</div>
+                    <div class="info-value"><a href="https://pvbx.carrd.co/" target="_blank">pvbx.carrd.co</a></div>
+                </div>
+            </div>
+
+            <h3 style="color: #9333ea; font-family: 'Cinzel', serif; margin-top: 20px; margin-bottom: 15px;">Contract Address</h3>
+            <div class="code-block">CTQCcJpvZhFSvY1VaxVXVMFKAx3EETqGjpqScqMpump</div>
+
+            <h3 style="color: #9333ea; font-family: 'Cinzel', serif; margin-top: 20px; margin-bottom: 15px;">Public Wallets</h3>
+            <div class="info-item" style="margin-bottom: 10px;">
+                <div class="info-label">Treasury</div>
+                <div class="code-block" style="margin-top: 5px;">2kHFJXYyr9mZD7oGBYjAvn5ytavsCpDSYn4b8KkrQenW</div>
+            </div>
+            <div class="info-item" style="margin-bottom: 10px;">
+                <div class="info-label">Protocol Wallet</div>
+                <div class="code-block" style="margin-top: 5px;">5aHLEifNacWUhM5fQtFXQjoN54mjZ5CaGYiVjwTEc9ax</div>
+            </div>
+            <div class="info-item">
+                <div class="info-label">Burn Address</div>
+                <div class="code-block" style="margin-top: 5px;">11111111111111111111111111111111</div>
+            </div>
+
+            <h3 style="color: #9333ea; font-family: 'Cinzel', serif; margin-top: 20px; margin-bottom: 15px;">Connect With Us</h3>
+            <div class="social-links">
+                <a href="https://pump.fun/coin/CTQCcJpvZhFSvY1VaxVXVMFKAx3EETqGjpqScqMpump" target="_blank" class="social-link">
+                    🚀 Pump.fun
+                </a>
+                <a href="https://x.com/player_vs29015" target="_blank" class="social-link">
+                    🐦 Twitter/X
+                </a>
+                <a href="https://t.me/PVBX_Arena" target="_blank" class="social-link">
+                    💬 Telegram
+                </a>
+            </div>
+        </div>
+
+        <!-- Abstract -->
+        <div class="section">
+            <h2>1) Abstract</h2>
+            <p>$PVBX is a <strong style="color: #D4AF37;">bot-first, deflationary</strong> token. The trading bot realizes profits off-chain, then each realized-profit cycle is routed:</p>
+            
+            <div class="stats-display">
+                <div class="stat-box">
+                    <div class="stat-label">Protocol</div>
+                    <div class="stat-value">20%</div>
+                </div>
+                <div class="stat-box">
+                    <div class="stat-label">Buyback + Burn</div>
+                    <div class="stat-value">30%</div>
+                </div>
+                <div class="stat-box">
+                    <div class="stat-label">Compound</div>
+                    <div class="stat-value">50%</div>
+                </div>
+            </div>
+
+            <div class="highlight-box">
+                <p><strong>Anti-Frontrunning Design:</strong> Buybacks execute at randomized times inside a 24–72h window after a snapshot to reduce frontrunning. After execution, we publish proofs (conversion, swap, burn) and a weekly report (PnL, ROI, win rate, amounts burned, compounded balance).</p>
+            </div>
+
+            <p>Once v1 earns trust and liquidity, v2 introduces the <strong style="color: #D4AF37;">Arena (Player vs. Bot)</strong> weekly game.</p>
+        </div>
+
+        <!-- Token Overview -->
+        <div class="section">
+            <h2>2) Token Overview (v1)</h2>
+            <ul>
+                <li><strong>Name/Ticker:</strong> Player vs. Bot — $PVBX</li>
+                <li><strong>Standard:</strong> SPL (Token-2022 compatible)</li>
+                <li><strong>Supply:</strong> 1,000,000,000 fixed</li>
+                <li><strong>Launch:</strong> Fair launch on Pump/DEX (no presale; no team allocation)</li>
+                <li><strong>Taxes:</strong> None at launch (TransferFee can be proposed later by community)</li>
+                <li><strong>Ownership:</strong> Mint authority renounced after setup; any program authority moved to transparent governance when deployed</li>
+            </ul>
+        </div>
+
+        <!-- Mechanism -->
+        <div class="section">
+            <h2>3) Mechanism — Bot-First Buyback & Burn (v1)</h2>
+            
+            <h3>Cycle (weekly or threshold-based):</h3>
+            <ol>
+                <li>Bot runs off-chain (venue not disclosed).</li>
+                <li>Realize PnL → take snapshot.</li>
+                <li>Split: 20% protocol / 30% buyback+burn / 50% compound.</li>
+                <li>Convert the buyback share to Solana liquidity and swap into $PVBX via best route (aggregator).</li>
+                <li>Burn purchased tokens to the Solana null address.</li>
+                <li>Publish proofs after execution (conversion, swap, burn) and a weekly report.</li>
+            </ol>
+
+            <h3>Randomized execution (anti-frontrun):</h3>
+            <ul>
+                <li>Burns execute at random times within 24–72h after snapshot.</li>
+                <li>Multiple micro-buys with jitter (random order sizes and timestamps).</li>
+                <li>Proofs and reporting are posted after the window closes.</li>
+            </ul>
+        </div>
+
+        <!-- Randomized Buyback Design -->
+        <div class="section">
+            <h2>4) Randomized Buyback & Burn — Execution Design</h2>
+            
+            <p><strong style="color: #D4AF37;">Goal:</strong> Reduce frontrunning by hiding exact timing and splitting orders.</p>
+
+            <div class="highlight-box">
+                <h3 style="margin-top: 0;">Window & Jitter</h3>
+                <p>After snapshot, choose ΔT ∈ [24h, 72h). Schedule N micro-buys at random offsets with ±J% jitter; random size split; enforce slippage caps.</p>
+            </div>
+
+            <div class="highlight-box">
+                <h3 style="margin-top: 0;">Routing & Safety</h3>
+                <p>Route via best-path aggregator with slippage ≤ s%; re-roll if market impact is too high.</p>
+            </div>
+
+            <div class="highlight-box">
+                <h3 style="margin-top: 0;">Publication</h3>
+                <p>After all micro-buys, publish the proof pack and weekly digest.</p>
+            </div>
+        </div>
+
+        <!-- Strategy Snapshot -->
+        <div class="section">
+            <h2>5) Strategy Snapshot</h2>
+            
+            <p style="font-style: italic; color: #9333ea;">Metrics are as reported; backtests differ from live results. Dates run from the listed start to present.</p>
+
+            <h3>Soomario 3-Bot Portfolio</h3>
+            <ul>
+                <li><strong>Constituents:</strong> LTC (40%) / HYPE with short (35%) / HYPE long only (25%)</li>
+                <li><strong>Leverage:</strong> 2×</li>
+                <li><strong>Compounding:</strong> 100% (all realized profits reinvested)</li>
+            </ul>
+
+            <h3>Combined Portfolio Performance (Recent Live History)</h3>
+            <div class="stats-display">
+                <div class="stat-box">
+                    <div class="stat-label">Total Return</div>
+                    <div class="stat-value" style="color: #4ade80;">+155%</div>
+                </div>
+                <div class="stat-box">
+                    <div class="stat-label">Max Drawdown</div>
+                    <div class="stat-value" style="color: #ef4444;">-17.8%</div>
+                </div>
+                <div class="stat-box">
+                    <div class="stat-label">Profit Factor</div>
+                    <div class="stat-value">2.89</div>
+                </div>
+            </div>
+
+            <div class="highlight-box warning">
+                <p><strong>⚠️ Important Disclaimer:</strong> Stats are for the combined portfolio, not any single bot. <strong>Past performance ≠ future results.</strong></p>
+            </div>
+        </div>
+
+        <!-- Economics -->
+        <div class="section">
+            <h2>6) Economics</h2>
+            <ul>
+                <li><strong style="color: #D4AF37;">Deflation:</strong> Recurring buybacks → 30% of realized profit used to burn supply.</li>
+                <li><strong style="color: #D4AF37;">Compounding:</strong> 50% of realized profit compounds to increase future buyback power.</li>
+                <li><strong style="color: #D4AF37;">Protocol:</strong> 20% funds operations/infra/audits.</li>
+            </ul>
+
+            <div class="highlight-box warning">
+                <p><strong>No revenue promises:</strong> Outcomes depend on markets and risk controls.</p>
+            </div>
+        </div>
+
+        <!-- Governance -->
+        <div class="section">
+            <h2>7) Governance & Operations</h2>
+            <ul>
+                <li>Protocol allocation (20%) funds ops/infra/audits; currently routed to the protocol wallet until a formal treasury contract is deployed.</li>
+                <li>Treasury today: single-signer, with a roadmap to an on-chain USDC contract that buys & burns at random times.</li>
+                <li>Parameters: cadence, split, Arena rules → published proposals + community review.</li>
+                <li>Verification: Verified community members reproduce weekly calculations and sign off via a public checklist (no attestor multisig).</li>
+            </ul>
+        </div>
+
+        <!-- Security -->
+        <div class="section">
+            <h2>8) Security Model</h2>
+            <ul>
+                <li><strong>Custody:</strong> Minimal hot-wallet exposure; hardware signers; key rotation policy.</li>
+                <li><strong>Contracts (roadmap):</strong> Narrow-scoped USDC buy-and-burn contract with randomized execution.</li>
+                <li><strong>Ops controls:</strong> Checklists and two-person review for settlement actions and reporting.</li>
+                <li><strong>Incidents:</strong> Disclose quickly; pause procedures for future v2 vaults.</li>
+            </ul>
+        </div>
+
+        <!-- Roadmap -->
+        <div class="section">
+            <h2>9) Roadmap & KPIs</h2>
+
+            <div class="roadmap-item">
+                <div class="roadmap-title">Phase v1 — Pump.fun (Now)</div>
+                <ul>
+                    <li>Weekly/threshold cycle: snapshot → randomized buys → burn → report + proofs.</li>
+                    <li>Split: 20% protocol / 30% buyback+burn / 50% compound.</li>
+                    <li>Build socials, holder base, and operational discipline.</li>
+                </ul>
+            </div>
+
+            <div class="roadmap-item">
+                <div class="roadmap-title">Graduation Milestone</div>
+                <p><strong style="color: #D4AF37;">"Graduate from Pump.fun"</strong> = the bonding-curve stage completes and the token migrates to a DEX (e.g., Raydium), with:</p>
+                <ul>
+                    <li>Liquidity pool created and verified, initial liquidity added (and locked where applicable).</li>
+                    <li>Mint/ownership configs finalized (e.g., mint authority renounced if/when appropriate).</li>
+                    <li>Pump.fun URL updated to show Graduated status / DEX link live.</li>
+                    <li>Public post confirming graduation + next steps.</li>
+                </ul>
+            </div>
+
+            <div class="roadmap-item">
+                <div class="roadmap-title">Phase v1.b — Post-Graduation Stabilization</div>
+                <ul>
+                    <li>Continue randomized buyback+burn and weekly reports.</li>
+                    <li>Observe N ≥ 2–4 consecutive weeks of healthy liquidity and on-time proofs.</li>
+                    <li>Validate infra for the future USDC buy-and-burn contract.</li>
+                </ul>
+            </div>
+
+            <div class="roadmap-item">
+                <div class="roadmap-title">Gate to Phase v2 (Arena) — KPIs</div>
+                <div class="highlight-box success">
+                    <p><strong>All must be true after graduation:</strong></p>
+                    <ul>
+                        <li>≥ 4 consecutive on-time weekly reports.</li>
+                        <li>Stable treasury growth trend and no open security issues.</li>
+                    </ul>
+                    <p style="margin-top: 15px;"><strong>Only after these KPIs are met</strong> do we spec, audit, and launch v2: Arena (Player vs Bot).</p>
+                </div>
+            </div>
+        </div>
+
+        <!-- Risks -->
+        <div class="section">
+            <h2>10) Risks & Disclosures</h2>
+            
+            <div class="highlight-box warning">
+                <ul>
+                    <li><strong>Market risk:</strong> Strategy PnL is uncertain; past performance ≠ future results.</li>
+                    <li><strong>Operational risk:</strong> Execution errors mitigated by SOPs/reviews, not eliminated.</li>
+                    <li><strong>Security risk:</strong> Custody & code reviews reduce risk, cannot remove it.</li>
+                    <li><strong>Regulatory/comms:</strong> Experimental utility; not a promise of returns or dividends.</li>
+                </ul>
+                <p style="margin-top: 15px; font-size: 1.2em; font-weight: 700; color: #ef4444;">⚠️ HIGH RISK. DYOR.</p>
+            </div>
+        </div>
+
+        <!-- Appendix A -->
+        <div class="section">
+            <h2>Appendix A — Weekly Report Template</h2>
+            
+            <div class="flow-diagram">
+                <div><strong style="color: #D4AF37;">$PVBX Weekly Report — {DATES}</strong></div>
+                <div style="margin-top: 15px;">
+                    • Realized PnL: {PNL} | ROI: {ROI}<br>
+                    • Trades: {TRADES} | Win rate: {WINRATE}<br>
+                    • Split:<br>
+                    &nbsp;&nbsp;- 20% Protocol {PROTOCOL_AMT}<br>
+                    &nbsp;&nbsp;- 30% Buyback+Burn {BUYBACK_AMT} (Burned {BURNED})<br>
+                    &nbsp;&nbsp;- 50% Compound {COMPOUND_AMT}<br>
+                    • Proofs: {CONVERSION_TX} {SWAP_TX} {BURN_TX}<br>
+                    • Burn addr: 11111111111111111111111111111111<br>
+                    • Treasury: 2kHFJXYyr9mZD7oGBYjAvn5ytavsCpDSYn4b8KkrQenW<br>
+                    • Protocol wallet: 5aHLEifNacWUhM5fQtFXQjoN54mjZ5CaGYiVjwTEc9ax
+                </div>
+            </div>
+        </div>
+
+        <!-- Appendix B -->
+        <div class="section">
+            <h2>Appendix B — v1 Flow</h2>
+            
+            <div class="flow-diagram">
+                <div class="flow-step">Bot Trades Off-chain</div>
+                <div class="flow-step">↓</div>
+                <div class="flow-step">Realize PnL / Snapshot</div>
+                <div class="flow-step">↓</div>
+                <div class="flow-step">Split 20/30/50</div>
+                <div class="flow-step">↓</div>
+                <div class="flow-step">Convert Buyback Share → Solana</div>
+                <div class="flow-step">↓</div>
+                <div class="flow-step">Random Window ΔT 24–72h</div>
+                <div class="flow-step">↓ (micro-buys, jitter)</div>
+                <div class="flow-step">Swap via Best-Route → Burn to Null</div>
+                <div class="flow-step">↓</div>
+                <div class="flow-step">Publish Proofs + Report</div>
+            </div>
+        </div>
+
+        <!-- Footer -->
+        <div class="section" style="text-align: center; border: 2px solid rgba(212, 175, 55, 0.4);">
+            <h2 style="border: none;">⚔️ Pick a side. Stake your pride.</h2>
+            <div class="social-links" style="justify-content: center; margin-top: 25px;">
+                <a href="https://pump.fun/coin/CTQCcJpvZhFSvY1VaxVXVMFKAx3EETqGjpqScqMpump" target="_blank" class="social-link">
+                    🚀 Trade on Pump.fun
+                </a>
+                <a href="https://pvbx.carrd.co/" target="_blank" class="social-link">
+                    🌐 Visit Website
+                </a>
+                <a href="https://x.com/player_vs29015" target="_blank" class="social-link">
+                    🐦 Follow on X
+                </a>
+                <a href="https://t.me/PVBX_Arena" target="_blank" class="social-link">
+                    💬 Join Telegram
+                </a>
+            </div>
+        </div>
+    </div>
+
+    <!-- Back to Top Button -->
+    <div class="back-to-top" id="backToTop" onclick="scrollToTop()">↑</div>
+
+    <script>
+        // Back to top button
+        window.addEventListener('scroll', function() {
+            const backToTop = document.getElementById('backToTop');
+            if (window.pageYOffset > 300) {
+                backToTop.classList.add('visible');
+            } else {
+                backToTop.classList.remove('visible');
+            }
+        });
+
+        function scrollToTop() {
+            window.scrollTo({
+                top: 0,
+                behavior: 'smooth'
+            });
+        }
+
+        // Smooth scroll for anchor links
+        document.querySelectorAll('a[href^="#"]').forEach(anchor => {
+            anchor.addEventListener('click', function (e) {
+                e.preventDefault();
+                const target = document.querySelector(this.getAttribute('href'));
+                if (target) {
+                    target.scrollIntoView({
+                        behavior: 'smooth'
+                    });
+                }
+            });
+        });
+    </script>
+</body>
+</html>
