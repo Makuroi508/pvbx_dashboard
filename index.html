@@ -1,0 +1,723 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>⚔️ PVBX Live Dashboard</title>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chartjs-adapter-date-fns"></script>
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Cinzel:wght@400;600;700&family=Inter:wght@300;400;600;700&display=swap');
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+            background: linear-gradient(135deg, #1a0f2e 0%, #2d1b4e 50%, #1a0f2e 100%);
+            padding: 15px;
+            color: #e0e0e0;
+            min-height: 100vh;
+        }
+
+        .container {
+            max-width: 1400px;
+            margin: 0 auto;
+        }
+
+        /* Header with Player vs Bot theme */
+        .header {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding: 20px 30px;
+            background: rgba(0, 0, 0, 0.4);
+            border-radius: 15px;
+            border: 2px solid rgba(212, 175, 55, 0.4);
+            box-shadow: 0 8px 32px rgba(147, 51, 234, 0.3);
+            margin-bottom: 15px;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .header::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: linear-gradient(90deg, 
+                rgba(147, 51, 234, 0.1) 0%, 
+                transparent 50%, 
+                rgba(212, 175, 55, 0.1) 100%);
+            pointer-events: none;
+        }
+
+        .header-content {
+            display: flex;
+            align-items: center;
+            gap: 20px;
+            position: relative;
+            z-index: 1;
+        }
+
+        .logo-container {
+            width: 60px;
+            height: 60px;
+            border-radius: 50%;
+            background: linear-gradient(135deg, #D4AF37 0%, #9333ea 100%);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            box-shadow: 0 0 20px rgba(212, 175, 55, 0.5);
+        }
+
+        .logo-text {
+            font-family: 'Cinzel', serif;
+            font-size: 1.2em;
+            font-weight: 700;
+            color: #1a0f2e;
+        }
+
+        .header h1 {
+            font-family: 'Cinzel', serif;
+            font-size: 2em;
+            background: linear-gradient(135deg, #D4AF37 0%, #9333ea 100%);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+            text-shadow: 0 0 30px rgba(212, 175, 55, 0.3);
+            position: relative;
+        }
+
+        .subtitle {
+            font-size: 0.8em;
+            color: #9333ea;
+            font-style: italic;
+            margin-top: 5px;
+        }
+
+        .status {
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+            padding: 8px 16px;
+            background: rgba(147, 51, 234, 0.2);
+            border: 1px solid #9333ea;
+            border-radius: 20px;
+            font-size: 0.85em;
+            color: #9333ea;
+            position: relative;
+            z-index: 1;
+        }
+
+        .status.active {
+            background: rgba(74, 222, 128, 0.2);
+            border-color: #4ade80;
+            color: #4ade80;
+        }
+
+        .status.loading {
+            background: rgba(251, 191, 36, 0.2);
+            border-color: #fbbf24;
+            color: #fbbf24;
+        }
+
+        .status.error {
+            background: rgba(239, 68, 68, 0.2);
+            border-color: #ef4444;
+            color: #ef4444;
+        }
+
+        .status-dot {
+            width: 8px;
+            height: 8px;
+            border-radius: 50%;
+            background: currentColor;
+            animation: pulse 2s infinite;
+        }
+
+        @keyframes pulse {
+            0%, 100% { opacity: 1; transform: scale(1); }
+            50% { opacity: 0.5; transform: scale(1.2); }
+        }
+
+        /* Panel */
+        .panel {
+            background: rgba(0, 0, 0, 0.4);
+            border: 1px solid rgba(212, 175, 55, 0.3);
+            border-radius: 12px;
+            padding: 20px;
+            margin-bottom: 15px;
+            box-shadow: 0 4px 16px rgba(147, 51, 234, 0.2);
+        }
+
+        .panel-title {
+            font-family: 'Cinzel', serif;
+            font-size: 1.2em;
+            color: #D4AF37;
+            margin-bottom: 15px;
+            padding-bottom: 10px;
+            border-bottom: 1px solid rgba(212, 175, 55, 0.2);
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .last-update {
+            font-size: 0.7em;
+            color: #9333ea;
+            font-family: 'Inter', sans-serif;
+            font-weight: 400;
+        }
+
+        /* Stats Grid */
+        .stats-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 12px;
+            margin-bottom: 20px;
+        }
+
+        .stat-card {
+            background: rgba(0, 0, 0, 0.3);
+            border: 1px solid rgba(212, 175, 55, 0.2);
+            border-radius: 10px;
+            padding: 20px;
+            text-align: center;
+            transition: all 0.3s;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .stat-card::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 3px;
+            background: linear-gradient(90deg, #D4AF37, #9333ea);
+            transform: scaleX(0);
+            transition: transform 0.3s;
+        }
+
+        .stat-card:hover {
+            background: rgba(147, 51, 234, 0.1);
+            border-color: rgba(212, 175, 55, 0.4);
+            transform: translateY(-3px);
+            box-shadow: 0 8px 20px rgba(147, 51, 234, 0.3);
+        }
+
+        .stat-card:hover::before {
+            transform: scaleX(1);
+        }
+
+        .stat-label {
+            font-size: 0.75em;
+            color: #9333ea;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            margin-bottom: 10px;
+            font-weight: 600;
+        }
+
+        .stat-value {
+            font-size: 2em;
+            font-weight: 700;
+            color: #D4AF37;
+            font-family: 'Cinzel', serif;
+        }
+
+        .stat-value.positive {
+            color: #4ade80;
+        }
+
+        .stat-value.negative {
+            color: #ef4444;
+        }
+
+        /* Chart Container */
+        .chart-container {
+            background: rgba(0, 0, 0, 0.3);
+            border: 1px solid rgba(212, 175, 55, 0.2);
+            border-radius: 12px;
+            padding: 20px;
+            height: 400px;
+            margin-bottom: 20px;
+        }
+
+        /* Trade History Table */
+        .trade-table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-top: 20px;
+        }
+
+        .trade-table thead {
+            background: rgba(147, 51, 234, 0.2);
+        }
+
+        .trade-table th {
+            padding: 12px;
+            text-align: left;
+            color: #D4AF37;
+            font-weight: 600;
+            font-size: 0.85em;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            border-bottom: 2px solid rgba(212, 175, 55, 0.3);
+        }
+
+        .trade-table td {
+            padding: 12px;
+            border-bottom: 1px solid rgba(212, 175, 55, 0.1);
+            color: #e0e0e0;
+        }
+
+        .trade-table tbody tr {
+            transition: all 0.3s;
+        }
+
+        .trade-table tbody tr:hover {
+            background: rgba(147, 51, 234, 0.1);
+        }
+
+        .trade-action {
+            padding: 4px 8px;
+            border-radius: 4px;
+            font-size: 0.8em;
+            font-weight: 600;
+        }
+
+        .trade-action.buy {
+            background: rgba(74, 222, 128, 0.2);
+            color: #4ade80;
+        }
+
+        .trade-action.sell {
+            background: rgba(239, 68, 68, 0.2);
+            color: #ef4444;
+        }
+
+        .pnl-positive {
+            color: #4ade80;
+            font-weight: 600;
+        }
+
+        .pnl-negative {
+            color: #ef4444;
+            font-weight: 600;
+        }
+
+        /* Responsive Design */
+        @media (max-width: 768px) {
+            .header h1 {
+                font-size: 1.5em;
+            }
+
+            .stats-grid {
+                grid-template-columns: repeat(2, 1fr);
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <!-- Header -->
+        <div class="header">
+            <div class="header-content">
+                <div class="logo-container">
+                    <div class="logo-text">⚔️</div>
+                </div>
+                <div>
+                    <h1>PLAYER vs BOT</h1>
+                    <div class="subtitle">Pick a side. Stake your pride.</div>
+                </div>
+            </div>
+            <div class="status loading" id="statusBadge">
+                <div class="status-dot"></div>
+                <span id="statusText">Loading...</span>
+            </div>
+        </div>
+
+        <!-- Key Metrics -->
+        <div class="stats-grid">
+            <div class="stat-card">
+                <div class="stat-label">Starting Capital</div>
+                <div class="stat-value" id="startingCapitalDisplay">$0.00</div>
+            </div>
+            <div class="stat-card">
+                <div class="stat-label">Current Equity</div>
+                <div class="stat-value" id="currentEquity">$0.00</div>
+            </div>
+            <div class="stat-card">
+                <div class="stat-label">Total Return</div>
+                <div class="stat-value" id="totalReturn">$0.00</div>
+            </div>
+            <div class="stat-card">
+                <div class="stat-label">ROI %</div>
+                <div class="stat-value" id="roiPercent">0.00%</div>
+            </div>
+            <div class="stat-card">
+                <div class="stat-label">Max Drawdown</div>
+                <div class="stat-value negative" id="maxDrawdown">0.00%</div>
+            </div>
+            <div class="stat-card">
+                <div class="stat-label">Win Rate</div>
+                <div class="stat-value" id="winRate">0.0%</div>
+            </div>
+            <div class="stat-card">
+                <div class="stat-label">Total Trades</div>
+                <div class="stat-value" id="totalTrades">0</div>
+            </div>
+            <div class="stat-card">
+                <div class="stat-label">Profitable Trades</div>
+                <div class="stat-value positive" id="profitableTrades">0</div>
+            </div>
+            <div class="stat-card">
+                <div class="stat-label">Avg Win</div>
+                <div class="stat-value positive" id="avgWin">$0.00</div>
+            </div>
+            <div class="stat-card">
+                <div class="stat-label">Avg Loss</div>
+                <div class="stat-value negative" id="avgLoss">$0.00</div>
+            </div>
+        </div>
+
+        <!-- Equity Chart -->
+        <div class="panel">
+            <div class="panel-title">
+                <span>📈 Equity Curve</span>
+                <span class="last-update" id="lastUpdate">Last updated: Never</span>
+            </div>
+            <div class="chart-container">
+                <canvas id="equityChart"></canvas>
+            </div>
+        </div>
+
+        <!-- Trade History -->
+        <div class="panel">
+            <div class="panel-title">📊 Trade History</div>
+            <table class="trade-table">
+                <thead>
+                    <tr>
+                        <th>Date</th>
+                        <th>Pair</th>
+                        <th>Action</th>
+                        <th>Entry</th>
+                        <th>Exit</th>
+                        <th>Size</th>
+                        <th>PnL</th>
+                        <th>PnL %</th>
+                    </tr>
+                </thead>
+                <tbody id="tradeHistoryBody">
+                </tbody>
+            </table>
+        </div>
+    </div>
+
+    <script>
+        // ═══════════════════════════════════════════════════════════════
+        // CONFIGURATION - EDIT THESE VALUES
+        // ═══════════════════════════════════════════════════════════════
+        
+        const CONFIG = {
+            // Paste your Google Apps Script Web App URL here
+            WEB_APP_URL: 'YOUR_APPS_SCRIPT_URL_HERE',
+            
+            // Your starting capital amount
+            STARTING_CAPITAL: 1000,
+            
+            // Auto-refresh interval in milliseconds (60000 = 60 seconds)
+            REFRESH_INTERVAL: 60000
+        };
+        
+        // ═══════════════════════════════════════════════════════════════
+        // DO NOT EDIT BELOW THIS LINE
+        // ═══════════════════════════════════════════════════════════════
+
+        // Global variables
+        let trades = [];
+        let startingCapital = CONFIG.STARTING_CAPITAL;
+        let equityChart = null;
+        let refreshInterval = null;
+
+        // Initialize on load
+        window.addEventListener('load', function() {
+            // Initial load
+            loadData();
+            
+            // Set up auto-refresh
+            refreshInterval = setInterval(loadData, CONFIG.REFRESH_INTERVAL);
+        });
+
+        /**
+         * Load data from Apps Script
+         */
+        async function loadData() {
+            updateStatus('loading', 'Loading...');
+
+            try {
+                const response = await fetch(CONFIG.WEB_APP_URL);
+                if (!response.ok) {
+                    throw new Error('Failed to fetch data from Apps Script');
+                }
+
+                const data = await response.json();
+                
+                if (!data.success) {
+                    throw new Error(data.error || 'Unknown error from Apps Script');
+                }
+
+                trades = data.trades || [];
+                
+                updateDashboard();
+                updateStatus('active', `Live • ${trades.length} trades`);
+                
+                // Update last update time
+                document.getElementById('lastUpdate').textContent = 
+                    'Last updated: ' + new Date().toLocaleTimeString();
+
+            } catch (error) {
+                console.error('Error loading data:', error);
+                updateStatus('error', 'Error loading data');
+            }
+        }
+
+        /**
+         * Update status badge
+         */
+        function updateStatus(status, text) {
+            const badge = document.getElementById('statusBadge');
+            const statusText = document.getElementById('statusText');
+            
+            badge.className = 'status ' + status;
+            statusText.textContent = text;
+        }
+
+        /**
+         * Calculate equity curve
+         */
+        function calculateEquity() {
+            const equityCurve = [];
+            let currentEquity = startingCapital;
+            let peak = startingCapital;
+            let maxDD = 0;
+
+            equityCurve.push({
+                date: 'Start',
+                equity: startingCapital
+            });
+
+            trades.forEach(trade => {
+                currentEquity += trade.pnl;
+                equityCurve.push({
+                    date: trade.date,
+                    equity: currentEquity
+                });
+
+                // Track drawdown
+                if (currentEquity > peak) {
+                    peak = currentEquity;
+                }
+                const dd = ((currentEquity - peak) / peak) * 100;
+                if (dd < maxDD) {
+                    maxDD = dd;
+                }
+            });
+
+            return { equityCurve, currentEquity, maxDD };
+        }
+
+        /**
+         * Update all dashboard elements
+         */
+        function updateDashboard() {
+            const { equityCurve, currentEquity, maxDD } = calculateEquity();
+            
+            // Calculate stats
+            const totalReturn = currentEquity - startingCapital;
+            const roiPercent = startingCapital > 0 ? ((currentEquity / startingCapital - 1) * 100) : 0;
+            
+            const profitableTrades = trades.filter(t => t.pnl > 0).length;
+            const winRate = trades.length > 0 ? (profitableTrades / trades.length * 100) : 0;
+            
+            const wins = trades.filter(t => t.pnl > 0);
+            const losses = trades.filter(t => t.pnl < 0);
+            const avgWin = wins.length > 0 ? wins.reduce((sum, t) => sum + t.pnl, 0) / wins.length : 0;
+            const avgLoss = losses.length > 0 ? Math.abs(losses.reduce((sum, t) => sum + t.pnl, 0) / losses.length) : 0;
+
+            // Update stats
+            document.getElementById('startingCapitalDisplay').textContent = '$' + startingCapital.toLocaleString('en-US', {minimumFractionDigits: 2, maximumFractionDigits: 2});
+            document.getElementById('currentEquity').textContent = '$' + currentEquity.toLocaleString('en-US', {minimumFractionDigits: 2, maximumFractionDigits: 2});
+            
+            const returnEl = document.getElementById('totalReturn');
+            returnEl.textContent = (totalReturn >= 0 ? '+$' : '-$') + Math.abs(totalReturn).toLocaleString('en-US', {minimumFractionDigits: 2, maximumFractionDigits: 2});
+            returnEl.className = 'stat-value ' + (totalReturn >= 0 ? 'positive' : 'negative');
+            
+            const roiEl = document.getElementById('roiPercent');
+            roiEl.textContent = (roiPercent >= 0 ? '+' : '') + roiPercent.toFixed(2) + '%';
+            roiEl.className = 'stat-value ' + (roiPercent >= 0 ? 'positive' : 'negative');
+            
+            document.getElementById('maxDrawdown').textContent = maxDD.toFixed(2) + '%';
+            document.getElementById('winRate').textContent = winRate.toFixed(1) + '%';
+            document.getElementById('totalTrades').textContent = trades.length;
+            document.getElementById('profitableTrades').textContent = profitableTrades;
+            document.getElementById('avgWin').textContent = '$' + avgWin.toLocaleString('en-US', {minimumFractionDigits: 2, maximumFractionDigits: 2});
+            document.getElementById('avgLoss').textContent = '$' + avgLoss.toLocaleString('en-US', {minimumFractionDigits: 2, maximumFractionDigits: 2});
+
+            // Update chart
+            updateChart(equityCurve);
+            
+            // Update trade history table
+            updateTradeTable();
+        }
+
+        /**
+         * Update equity chart
+         */
+        function updateChart(equityCurve) {
+            const ctx = document.getElementById('equityChart').getContext('2d');
+            
+            if (equityChart) {
+                equityChart.destroy();
+            }
+            
+            equityChart = new Chart(ctx, {
+                type: 'line',
+                data: {
+                    labels: equityCurve.map(e => e.date),
+                    datasets: [{
+                        label: 'Equity',
+                        data: equityCurve.map(e => e.equity),
+                        borderColor: '#D4AF37',
+                        backgroundColor: function(context) {
+                            const chart = context.chart;
+                            const {ctx, chartArea} = chart;
+                            if (!chartArea) return null;
+                            const gradient = ctx.createLinearGradient(0, chartArea.bottom, 0, chartArea.top);
+                            gradient.addColorStop(0, 'rgba(212, 175, 55, 0.05)');
+                            gradient.addColorStop(0.5, 'rgba(147, 51, 234, 0.1)');
+                            gradient.addColorStop(1, 'rgba(147, 51, 234, 0.2)');
+                            return gradient;
+                        },
+                        borderWidth: 3,
+                        fill: true,
+                        tension: 0.4,
+                        pointRadius: 3,
+                        pointBackgroundColor: '#D4AF37',
+                        pointBorderColor: '#9333ea',
+                        pointBorderWidth: 2,
+                        pointHoverRadius: 6,
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    plugins: {
+                        legend: { display: false },
+                        tooltip: {
+                            mode: 'index',
+                            intersect: false,
+                            backgroundColor: 'rgba(26, 15, 46, 0.95)',
+                            borderColor: '#D4AF37',
+                            borderWidth: 2,
+                            titleColor: '#D4AF37',
+                            bodyColor: '#e0e0e0',
+                            titleFont: { size: 14, weight: 'bold' },
+                            bodyFont: { size: 13 },
+                            padding: 12,
+                            callbacks: {
+                                label: (context) => {
+                                    return `Equity: $${context.parsed.y.toLocaleString('en-US', {minimumFractionDigits: 2})}`;
+                                }
+                            }
+                        }
+                    },
+                    scales: {
+                        x: {
+                            display: true,
+                            grid: { 
+                                color: 'rgba(147, 51, 234, 0.1)',
+                                borderColor: 'rgba(212, 175, 55, 0.3)'
+                            },
+                            ticks: { 
+                                color: '#9333ea',
+                                font: { size: 11 },
+                                maxRotation: 45,
+                                minRotation: 45
+                            }
+                        },
+                        y: {
+                            display: true,
+                            grid: { 
+                                color: 'rgba(147, 51, 234, 0.1)',
+                                borderColor: 'rgba(212, 175, 55, 0.3)'
+                            },
+                            ticks: { 
+                                color: '#9333ea',
+                                callback: (value) => '$' + value.toLocaleString(),
+                                font: { size: 11 }
+                            }
+                        }
+                    },
+                    interaction: {
+                        mode: 'nearest',
+                        axis: 'x',
+                        intersect: false
+                    }
+                }
+            });
+        }
+
+        /**
+         * Update trade history table
+         */
+        function updateTradeTable() {
+            const tbody = document.getElementById('tradeHistoryBody');
+            tbody.innerHTML = '';
+            
+            if (trades.length === 0) {
+                const row = tbody.insertRow();
+                const cell = row.insertCell();
+                cell.colSpan = 8;
+                cell.style.textAlign = 'center';
+                cell.style.padding = '40px';
+                cell.style.color = '#9333ea';
+                cell.textContent = 'No trades yet. Waiting for data...';
+                return;
+            }
+
+            // Reverse to show most recent first
+            [...trades].reverse().forEach(trade => {
+                const row = tbody.insertRow();
+                
+                row.insertCell().textContent = trade.date;
+                row.insertCell().textContent = trade.pair;
+                
+                const actionCell = row.insertCell();
+                const actionClass = (trade.action === 'buy' || trade.action === 'long') ? 'buy' : 'sell';
+                actionCell.innerHTML = `<span class="trade-action ${actionClass}">${trade.action.toUpperCase()}</span>`;
+                
+                row.insertCell().textContent = '$' + trade.entry.toFixed(8);
+                row.insertCell().textContent = '$' + trade.exit.toFixed(8);
+                row.insertCell().textContent = '$' + trade.size.toFixed(2);
+                
+                const pnlCell = row.insertCell();
+                pnlCell.textContent = (trade.pnl >= 0 ? '+$' : '-$') + Math.abs(trade.pnl).toFixed(2);
+                pnlCell.className = trade.pnl >= 0 ? 'pnl-positive' : 'pnl-negative';
+                
+                const pnlPctCell = row.insertCell();
+                pnlPctCell.textContent = (trade.pnlPercent >= 0 ? '+' : '') + trade.pnlPercent.toFixed(2) + '%';
+                pnlPctCell.className = trade.pnlPercent >= 0 ? 'pnl-positive' : 'pnl-negative';
+            });
+        }
+    </script>
+</body>
+</html>
