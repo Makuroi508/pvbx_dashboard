@@ -146,6 +146,48 @@
             50% { opacity: 0.5; transform: scale(1.2); }
         }
 
+        /* Timezone Selector */
+        .timezone-selector {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            padding: 6px 12px;
+            background: rgba(147, 51, 234, 0.2);
+            border: 1px solid rgba(147, 51, 234, 0.4);
+            border-radius: 8px;
+            position: relative;
+            z-index: 1;
+        }
+
+        .timezone-selector select {
+            background: rgba(0, 0, 0, 0.3);
+            border: 1px solid rgba(212, 175, 55, 0.3);
+            border-radius: 6px;
+            color: #D4AF37;
+            padding: 4px 8px;
+            font-size: 0.85em;
+            cursor: pointer;
+            transition: all 0.3s;
+        }
+
+        .timezone-selector select:hover {
+            border-color: #9333ea;
+            background: rgba(147, 51, 234, 0.2);
+        }
+
+        .timezone-selector select:focus {
+            outline: none;
+            border-color: #D4AF37;
+        }
+
+        .timezone-label {
+            font-size: 0.75em;
+            color: #9333ea;
+            font-weight: 600;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+
         /* Panel */
         .panel {
             background: rgba(0, 0, 0, 0.4);
@@ -316,12 +358,27 @@
 
         /* Responsive Design */
         @media (max-width: 768px) {
+            .header {
+                flex-direction: column;
+                gap: 15px;
+            }
+
+            .header-content {
+                width: 100%;
+                justify-content: center;
+            }
+
             .header h1 {
                 font-size: 1.5em;
             }
 
             .stats-grid {
                 grid-template-columns: repeat(2, 1fr);
+            }
+
+            .timezone-selector {
+                flex-direction: column;
+                align-items: flex-start;
             }
         }
     </style>
@@ -339,9 +396,24 @@
                     <div class="subtitle">Pick a side. Stake your pride.</div>
                 </div>
             </div>
-            <div class="status loading" id="statusBadge">
-                <div class="status-dot"></div>
-                <span id="statusText">Loading...</span>
+            <div style="display: flex; align-items: center; gap: 15px; position: relative; z-index: 1;">
+                <div class="timezone-selector">
+                    <span class="timezone-label">Timezone:</span>
+                    <select id="timezoneSelect" onchange="updateTimezone()">
+                        <option value="Asia/Seoul">UTC+9 (KST)</option>
+                        <option value="UTC">UTC+0</option>
+                        <option value="America/New_York">UTC-5 (EST)</option>
+                        <option value="America/Los_Angeles">UTC-8 (PST)</option>
+                        <option value="Europe/London">UTC+0 (GMT)</option>
+                        <option value="Asia/Tokyo">UTC+9 (JST)</option>
+                        <option value="Asia/Shanghai">UTC+8 (CST)</option>
+                        <option value="Australia/Sydney">UTC+11 (AEDT)</option>
+                    </select>
+                </div>
+                <div class="status loading" id="statusBadge">
+                    <div class="status-dot"></div>
+                    <span id="statusText">Loading...</span>
+                </div>
             </div>
         </div>
 
@@ -435,7 +507,10 @@
             STARTING_CAPITAL: 3372,
             
             // Auto-refresh interval in milliseconds (60000 = 60 seconds)
-            REFRESH_INTERVAL: 60000
+            REFRESH_INTERVAL: 60000,
+            
+            // Default timezone (will be saved to localStorage after user changes it)
+            DEFAULT_TIMEZONE: 'Asia/Seoul'
         };
         
         // ═══════════════════════════════════════════════════════════════
@@ -447,15 +522,54 @@
         let startingCapital = CONFIG.STARTING_CAPITAL;
         let equityChart = null;
         let refreshInterval = null;
+        let selectedTimezone = localStorage.getItem('pvbx_timezone') || CONFIG.DEFAULT_TIMEZONE;
 
         // Initialize on load
         window.addEventListener('load', function() {
+            // Set timezone selector to saved value
+            document.getElementById('timezoneSelect').value = selectedTimezone;
+            
             // Initial load
             loadData();
             
             // Set up auto-refresh
             refreshInterval = setInterval(loadData, CONFIG.REFRESH_INTERVAL);
         });
+
+        /**
+         * Update timezone when user changes selection
+         */
+        function updateTimezone() {
+            selectedTimezone = document.getElementById('timezoneSelect').value;
+            localStorage.setItem('pvbx_timezone', selectedTimezone);
+            
+            // Re-render the table with new timezone
+            updateTradeTable();
+        }
+
+        /**
+         * Format date to selected timezone
+         */
+        function formatDate(dateString) {
+            try {
+                const date = new Date(dateString);
+                
+                // Format: "Dec 5, 13:00" or "2025-12-05 13:00"
+                const options = {
+                    timeZone: selectedTimezone,
+                    month: 'short',
+                    day: 'numeric',
+                    hour: '2-digit',
+                    minute: '2-digit',
+                    hour12: false
+                };
+                
+                const formatted = new Intl.DateTimeFormat('en-US', options).format(date);
+                return formatted;
+            } catch (error) {
+                return dateString;
+            }
+        }
 
         /**
          * Load data from Apps Script
@@ -698,7 +812,8 @@
             [...trades].reverse().forEach(trade => {
                 const row = tbody.insertRow();
                 
-                row.insertCell().textContent = trade.date;
+                // Use formatted date
+                row.insertCell().textContent = formatDate(trade.date);
                 row.insertCell().textContent = trade.pair;
                 
                 const actionCell = row.insertCell();
